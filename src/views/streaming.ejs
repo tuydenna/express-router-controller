@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= info %></p>
+    <form action="" method="post" enctype="multipart/form-data">
+      <input id="file_data" name="file" type="file">
+      <button onclick="myFunction()">Upload</button>
+    </form>
+    <!--<button onclick="myFunction()">post me</button>-->
+
+    <p id="demo">
+      
+    </p>
+
+
+    <script>
+      async function myFunction() {
+        const file = document.getElementById("file_data").files[0];
+        console.log(file);
+        /*
+          for await (const chunk of new ReadableStream(file.stream())) {
+            // Do something with each 'chunk'
+            console.log(chunk);
+          }
+        */
+        const formData = new FormData();
+        formData.append('file', file);
+        const respond = await fetch('http://localhost:3090/upload', {
+          method: "POST",
+         /* headers: {
+            'Accept': 'application/json, application/xml, text/plain, text/html, multipart/form-data, *.*',
+            "Content-Type": "multipart/form-data",
+          },*/
+          body: formData
+      })
+        console.log(respond.json());
+      }
+    </script>
+
+  </body>
+</html>

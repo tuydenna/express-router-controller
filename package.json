@@ -1,7 +1,16 @@
 {
-  "name": "streaming",
-  "version": "0.0.0",
-  "private": true,
+  "name": "express-router-controller-khmer",
+  "version": "1.0.0",
+  "license": "xaio-din",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tuydenna/express-router-controller.git"
+  },
+  "main": "build/index.js",
+  "module": "build/index.js",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "start": "concurrently \"npx tsc --watch\" \"nodemon -q ./build/server.js\"",
     "build": "tsc"

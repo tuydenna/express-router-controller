@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use(express.static(path.join('public')));
 app.use(router);
 
-new AutoRegisterController(router, true);
+//new AutoRegisterController(router, true);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

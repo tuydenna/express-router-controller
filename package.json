@@ -1,13 +1,13 @@
 {
   "name": "express-router-controller-khmer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "xaio-din",
   "repository": {
     "type": "git",
     "url": "https://github.com/tuydenna/express-router-controller.git"
   },
   "main": "build/index.js",
-  "module": "build/index.js",
+  "types": "build/index.d.ts",
   "files": [
     "build"
   ],
@@ -21,6 +21,7 @@
     "debug": "~2.6.9",
     "ejs": "~2.6.1",
     "express": "~4.16.1",
+    "express-router-controller-khmer": "^1.0.2",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "reflect-metadata": "^0.1.13",

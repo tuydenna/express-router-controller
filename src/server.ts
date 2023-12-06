@@ -3,7 +3,7 @@ import createHttpError from "http-errors";
 import express, {Express, Router} from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
-import {AutoRegisterController} from "./routes/router";
+import AutoRegisterController from "express-router-controller-khmer";
 
 const app: Express = express();
 const port: number = 3090;
@@ -19,6 +19,9 @@ app.use(cookieParser());
 app.use(express.static(path.join('public')));
 app.use(router);
 
+
+AutoRegisterController({router, controllerPath: path.join(__dirname, "controllers"), logging: true});
+//AutoRegisterController
 //new AutoRegisterController(router, true);
 
 // catch 404 and forward to error handler

@@ -1,6 +1,6 @@
 {
   "name": "express-router-controller-khmer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "xaio-din",
   "repository": {
     "type": "git",
@@ -16,21 +16,12 @@
     "build": "tsc"
   },
   "dependencies": {
-    "concurrently": "^8.2.2",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "ejs": "~2.6.1",
     "express": "~4.16.1",
-    "express-router-controller-khmer": "^1.0.2",
-    "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
     "reflect-metadata": "^0.1.13",
     "typescript": "^5.3.2"
   },
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.6",
-    "@types/http-errors": "^2.0.4",
-    "@types/logger": "^0.0.5",
-    "nodemon": "^3.0.2"
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.3"
   }
 }

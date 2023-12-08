@@ -2,7 +2,7 @@ import {Router} from "express";
 
 interface ConfigInt {
 	router: Router,
-	controllerPath: string[],
+	controllerPath: any[],
 	logging: boolean
 }
 

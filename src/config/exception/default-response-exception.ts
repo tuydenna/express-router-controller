@@ -1,4 +1,4 @@
-import {IResponseInterceptor} from "types/interceptor";
+import {IResponseInterceptor} from "@interfaces/interceptor";
 import {Response, Request} from "express";
 
 export default class DefaultResponseException implements IResponseInterceptor {

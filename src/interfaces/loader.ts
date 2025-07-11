@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {IInterceptors} from "types/interceptor";
+import {IInterceptors} from "@interfaces/interceptor";
 
 export interface IConfigRouter extends Partial<IInterceptors> {
     router: Router,

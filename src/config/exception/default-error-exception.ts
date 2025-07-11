@@ -1,4 +1,4 @@
-import {IErrorInterceptor} from "types/interceptor";
+import {IErrorInterceptor} from "@interfaces/interceptor";
 import e from "express";
 
 export default class DefaultErrorException implements IErrorInterceptor {

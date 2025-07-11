@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "declaration": true,
+    "declaration": false,
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es6",
@@ -9,7 +9,15 @@
     "baseUrl": "./src",
     "resolveJsonModule": true,
     "sourceMap": false,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "paths": {
+      "@registry/*":[ "./registry/*"],
+      "@test/*":[ "test/*"],
+      "@middleware/*":[ "config/middleware/*"],
+      "@exception/*":[ "config/exception/*"],
+      "@decorators/*":[ "decorators/*"],
+      "@interfaces/*":[ "interfaces/*"]
+    }
   },
   "exclude": [
     "node_modules",

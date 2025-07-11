@@ -1,5 +1,5 @@
 import {Response, Request, NextFunction} from "express";
-import { IResponseInterceptor } from "types/interceptor";
+import { IResponseInterceptor } from "@interfaces/interceptor";
 
 export default function ResErrorMiddleware(responseInterceptor: IResponseInterceptor) {
     return function (data, req: Request, res: Response, next: NextFunction) {

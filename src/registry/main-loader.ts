@@ -1,8 +1,8 @@
 import {NextFunction, Request, Response, Router} from "express";
 import fs from "fs";
 import path from "path";
-import ResErrorMiddleware from "../middleware/res-error-middleware";
-import {IInterceptors} from "../types/interceptor";
+import ResErrorMiddleware from "@middleware/res-error-middleware";
+import {IInterceptors} from "@interfaces/interceptor";
 
 export default abstract class MainLoad {
 
@@ -45,23 +45,35 @@ export default abstract class MainLoad {
 
                     if (fileName == "*") {
                         const foldersPath: string = conPath.replace("*." + ext, "");
+
                         for (const file of fs.readdirSync(foldersPath)) {
-                            if (file.endsWith('.' + ext)) {
-                                const controller: string = await import(path.join(foldersPath, file));
-                                const controllerInstance = new controller[Object.keys(controller)[0]]();
-                                await this.resolveControllerDecorator(controllerInstance);
-                            }
+                            if (!file.endsWith('.' + ext)) continue;
+
+                            const controller: string = await import(path.join(foldersPath, file));
+                            const classTemplate: any = controller[Object.keys(controller)[0]];
+
+                            if (!this.checkValidClassController(classTemplate))  continue;
+                            const controllerInstance = new classTemplate();
+                            this.resolveControllerDecorator(controllerInstance);
                         }
                     } else {
                         const controller: string = await import(conPath);
-                        const controllerInstance = new controller[Object.keys(controller)[0]]();
-                        await this.resolveControllerDecorator(controllerInstance);
+                        const classTemplate: any = controller[Object.keys(controller)[0]];
+
+                        if (!this.checkValidClassController(classTemplate))  continue;
+
+                        const controllerInstance = new classTemplate();
+                        this.resolveControllerDecorator(controllerInstance);
                     }
                 }
             }
         } catch (e) {
             console.log("\x1b[36m","[Routing Controller]:","\x1b[31m","loading controller failed!", e);
         }
+    }
+
+    private checkValidClassController(classTemplate: unknown): boolean {
+        return typeof classTemplate === 'function' && /^class\s/.test(Function.prototype.toString.call(classTemplate))
     }
 
     private resolveControllerDecorator(classInstance: ClassDecorator) {
@@ -73,18 +85,28 @@ export default abstract class MainLoad {
                 const middleware: string = Reflect.getMetadata('middleware', classInstance.constructor, methodName);
                 const method: string = Reflect.getMetadata('method', classInstance, methodName);
                 let path: string = Reflect.getMetadata('path', classInstance, methodName);
-                if (path && method) {
-                    path = prefix ? prefix.trim() + path : path;
-                    if (middleware) {
-                        this.routesWithMiddleware.push({path, method: method.toLowerCase(), middleware, function: classInstance[methodName].bind(classInstance)});
-                    } else {
-                        this.routesWithoutMiddleware.push({path, method: method.toLowerCase(), function: classInstance[methodName].bind(classInstance)});
-                    }
+
+                if (!(path && method)) continue;
+
+                path = this.cleanURLPath(prefix) + this.cleanURLPath(path);
+
+                if (middleware) {
+                    this.routesWithMiddleware.push({path, method: method.toLowerCase(), middleware, function: classInstance[methodName].bind(classInstance)});
+                } else {
+                    this.routesWithoutMiddleware.push({path, method: method.toLowerCase(), function: classInstance[methodName].bind(classInstance)});
                 }
             }
         } catch (e) {
             console.log("\x1b[36m","[Routing Controller]:","\x1b[31m","register routes failed!", e);
         }
+    }
+
+    private cleanURLPath(path: string | undefined): string {
+        if (path && path.trim()) {
+            const newPath: string = path.trim();
+            return newPath.startsWith("/") ? newPath : "/" + newPath;
+        }
+        return "";
     }
 
     private registerExpressRoutes() {
@@ -93,8 +115,8 @@ export default abstract class MainLoad {
         }
 
         for (const route of this.routesWithMiddleware ) {
-            this.router.use(route.path, this.routeNextResolver(route.middleware));
-            this.router[route.method](route.path, this.routeNextResolver(route.function));
+            // this.router.use(route.path, this.routeNextResolver(route.middleware));
+            this.router[route.method](route.path, route.middleware, this.routeNextResolver(route.function));
         }
 
         // Res and error handler
@@ -102,14 +124,22 @@ export default abstract class MainLoad {
         //Error Interceptor
         this.router.use(this.interceptors.errorInterceptor.errorException);
 
-        if (this.logger) {
-            const stacks = this.router.stack;
-            for (const stack of stacks) {
-                if (stack.route) {
-                    this.routes.push(stack.route.path);
-                    console.log("\x1b[36m","["+Object.keys(stack.route.methods)[0].toUpperCase()+"]","\x1b[32m", stack.route.path);
-                }
+        if (this.logger == false) return;
+
+        const stacks = this.router.stack;
+
+        for (const stack of stacks) {
+
+            if (!stack.route) continue;
+
+            const innerStack: any[] = stack.route?.stack || []
+            this.routes.push(stack.route.path);
+
+            if (innerStack.length > 1) {
+                console.log("\x1b[36m", "["+Object.keys(stack.route.methods)[0].toUpperCase()+"]", "\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:","\x1b[32m",innerStack[0].name);
+                continue;
             }
+            console.log("\x1b[36m","["+Object.keys(stack.route.methods)[0].toUpperCase()+"]","\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:", "\x1b[32m", "N/A");
         }
     }
 

@@ -3,3 +3,4 @@ tsconfig.json
 *.log
 node_modules/
 .idea/
+build/test

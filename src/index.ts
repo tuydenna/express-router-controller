@@ -1,9 +1,9 @@
-import AutoRegisterController from "loader/auto-resgister";
-import DefaultResponseException from "exception/default-response-exception";
-import DefaultErrorException from "exception/default-error-exception";
-import { Get, Post, Delete, Put, Middleware, Prefix} from "./decorators/ExpressMethod";
-import {IResponseInterceptor, IErrorInterceptor} from "./types/interceptor";
-import {IConfigRouter} from "./types/loader";
+import AutoRegisterController from "@registry/auto-resgister";
+import DefaultResponseException from "./config/exception/default-response-exception";
+import DefaultErrorException from "./config/exception/default-error-exception";
+import { Get, Post, Delete, Put, Middleware, Prefix} from "@decorators/ExpressMethod";
+import {IResponseInterceptor, IErrorInterceptor} from "@interfaces/interceptor";
+import {IConfigRouter} from "@interfaces/loader";
 
 function AutoRegisterControllers(config: IConfigRouter): Promise<void> {
 	return new AutoRegisterController(

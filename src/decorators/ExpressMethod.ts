@@ -1,5 +1,4 @@
 import "reflect-metadata"
-import {middlewareFunction} from "../interfaces";
 
 function createMethodDecorator(method: string) {
 	return function (path: string) {
@@ -32,7 +31,7 @@ function Prefix(prefix: string) {
 	};
 }
 
-function Middleware(middleware: middlewareFunction) {
+function Middleware(middleware: Function) {
 	return function (target: any, propertyKey: string) {
 		Reflect.defineMetadata('middleware', middleware, target.constructor, propertyKey);
 	};

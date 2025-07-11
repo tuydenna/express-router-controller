@@ -20,6 +20,8 @@
   "scripts": {
     "start": "concurrently \"npx tsc --watch\" \"nodemon -q ./build/server.js\"",
     "build": "tsc && tsc-alias",
+    "build:pro": "npx tsc --project tsconfig-npm-pubish.json && tsc-alias",
+    "publish": "npm publish",
     "test": "node ./build/test/server.js",
     "watch": "tsc && ( concurrently \"npx tsc --watch\" \" tsc-alias -w\")"
   },

@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "moduleResolution": "node",
+    "outDir": "build",
+    "baseUrl": "./src",
+    "resolveJsonModule": true,
+    "sourceMap": false,
+    "experimentalDecorators": true,
+    "paths": {
+      "@registry/*":[ "./registry/*"],
+      "@test/*":[ "test/*"],
+      "@middleware/*":[ "config/middleware/*"],
+      "@exception/*":[ "config/exception/*"],
+      "@decorators/*":[ "decorators/*"],
+      "@interfaces/*":[ "interfaces/*"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "public"
+  ]
+}

@@ -86,9 +86,9 @@ export default abstract class MainLoad {
                 const method: string = Reflect.getMetadata('method', classInstance, methodName);
                 let path: string = Reflect.getMetadata('path', classInstance, methodName);
 
-                if (!(path && method)) continue;
-
                 path = this.cleanURLPath(prefix) + this.cleanURLPath(path);
+
+                if (!(path && method)) continue;
 
                 if (middleware) {
                     this.routesWithMiddleware.push({path, method: method.toLowerCase(), middleware, function: classInstance[methodName].bind(classInstance)});
@@ -120,9 +120,7 @@ export default abstract class MainLoad {
         }
 
         // Res and error handler
-        this.router.use(ResErrorMiddleware(this.interceptors.responseInterceptor));
-        //Error Interceptor
-        this.router.use(this.interceptors.errorInterceptor.errorException);
+        this.router.use(ResErrorMiddleware(this.interceptors));
 
         if (this.logger == false) return;
 
@@ -135,17 +133,21 @@ export default abstract class MainLoad {
             const innerStack: any[] = stack.route?.stack || []
             this.routes.push(stack.route.path);
 
-            if (innerStack.length > 1) {
-                console.log("\x1b[36m", "["+Object.keys(stack.route.methods)[0].toUpperCase()+"]", "\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:","\x1b[32m",innerStack[0].name);
-                continue;
-            }
-            console.log("\x1b[36m","["+Object.keys(stack.route.methods)[0].toUpperCase()+"]","\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:", "\x1b[32m", "N/A");
+            console.log("\x1b[36m","["+Object.keys(stack.route.methods)[0].toUpperCase()+"]","\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:", "\x1b[32m", innerStack.length > 1 ? innerStack[0].name : "N/A");
         }
     }
 
     private routeNextResolver(callBack: Function) {
         return function (req: Request, res: Response, next: NextFunction) {
-            Promise.resolve(callBack(req, res, next)).catch(next).then(next);
+            try {
+                Promise.resolve(callBack(req, res, next)).catch(error => {
+                    next(error instanceof Error ? error : new Error(error));
+                }).then(data=> {
+                    if (res.headersSent == false) next(data)
+                });
+            } catch (e) {
+                return next(new Error(e));
+            }
         }
     }
 }

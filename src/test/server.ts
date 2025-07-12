@@ -1,17 +1,22 @@
 import  express from "express";
 import {AutoRegisterControllers} from "../index";
 import path from "path";
-const app = express()
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+(async function Server()  {
+    const app = express()
+    app.use(express.json())
+    app.use(express.urlencoded({ extended: true }))
 
-const router = express.Router()
+    const router = express.Router()
 
-AutoRegisterControllers({
-    router,
-    logging: true,
-    controllerPath: [path.join(__dirname, "controllers/*.js")],
-}).then()
+    await AutoRegisterControllers({
+        router,
+        logging: true,
+        controllerPath: [path.join(__dirname, "controllers/*.js")],
+    })
 
-app.use(router)
+    app.use(router)
+    app.listen(5000, () => {
+        console.log("Listening on port 5000");
+    })
+})()

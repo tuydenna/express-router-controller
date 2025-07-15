@@ -1,97 +1,170 @@
-**Install With Express**
-```TypeScript
-import express, {Express, Router} from "express";
+# express-router-controller-khmer
 
-const app: Express = express();  
-const port: number = 3090;  
-const router: Router = express.Router();
+A lightweight, TypeScript-first decorator-based controller library for Express.js. Inspired by frameworks like NestJS and routing-controllers, this library makes it easy to organize your Express routes using classes and decorators.
 
-//Map router to express app
-app.use(router);
-// Add this AutoRegisterControllers
-const config = {
-	router, 
-	logging: true, 
-	controllerPath: [UserController, path.join(__dirname, "controllers/*.js")]}
-};
-AutoRegisterControllers(config);  
+---
 
+## Features
+
+- **Class-based controllers** with route decorators (`@Get`, `@Post`, etc.)
+- **Parameter decorators** for easy access to request data (`@Body`, `@Param`, `@Query`, `@Req`, `@Res`)
+- **Prefix and middleware support** at the controller and method level
+- **TypeScript support** out of the box
+- **Pluggable error and response interceptors**
+
+---
+
+## Installation
+
+```bash
+npm install express-router-controller-khmer
 ```
 
-### Examples
+---
 
-##### Basic
-1. Create a file `UserController.ts`
-```TypeScript
-import {Get, Post} from "express-router-controller-khmer";
+## Quick Start
 
-export default class UserController {  
-  @Get('/users')  
-  getUsers(req: Request, res: Response) {  
-	  return res.send('Get all users');  
-  }
-}
- 
- @Post('/users')  
-  getUsers(req: Request, res: Response) {  
-	  const body = request.body;
-	  return res.send(body);  
-  }
-}
- ```
-#####  With Prefix route
-    Note: Prefix can only be defined on controller class.
-```TypeScript
-import {Get, Post, Prefix} from "express-router-controller-khmer";
+### 1. Setup Express
 
-@Prefix("/api")
-export default class UserController {  
-  @Get('/users')  
-  getUsers(req: Request, res: Response) {  
-	  return res.send('Get all users');  
+```ts
+import express from "express";
+import { AutoRegisterControllers } from "express-router-controller-khmer";
+import path from "path";
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const router = express.Router();
+
+await AutoRegisterControllers({
+  router,
+  controllerPath: [path.join(__dirname, "controllers/*.js")],
+  logging: true,
+});
+
+app.use(router);
+app.listen(5000, () => {
+  console.log("Listening on port 5000");
+});
+```
+
+---
+
+### 2. Create a Controller
+
+```ts
+import { Prefix, Get, Post, Body, Param, Res } from "express-router-controller-khmer";
+
+@Prefix("/users")
+export default class UserController {
+  @Post("")
+  createUser(@Body() data, @Res() res) {
+    // handle user creation
+    return data
+  }
+
+  @Get("/:id")
+  getUser(@Param("id") id: string, @Res() res) {
+    // handle get user
+    return {id}
   }
 }
- 
- @Post('/users')  
-  getUsers(req: Request, res: Response) {  
-	  const body = request.body;
-	  return res.send(body);  
-  }
-}
- ```
-#####  Middleware on single route
-    Note: Prefix can only be defined on methods.
-```TypeScript
-import {Get, Post, Prefix, AuthMiddleware} from "express-router-controller-khmer";
+```
+
+---
+
+## Decorators
+
+- `@Prefix(path: string)` — Set a base path for the controller.
+- `@Get(path: string)` — Handle GET requests.
+- `@Post(path: string)` — Handle POST requests.
+- `@Delete(path: string)` — Handle DELETE requests.
+- `@Put(path: string)` — Handle PUT requests.
+- `@Param(name?: string)` — Inject route parameter(s).
+- `@Query(name?: string)` — Inject query parameter(s).
+- `@Body()` — Inject request body.
+- `@Req()` — Inject the raw Express request object.
+- `@Res()` — Inject the raw Express response object.
+- `@Middleware(fn)` — Attach middleware to a route.
+
+---
+
+## Middleware
+
+You can add middleware at the method level using the `@Middleware` decorator:
+
+```ts
+import { Middleware } from "express-router-controller-khmer";
 import authMiddleware from "./authMiddleware";
 
-@Prefix("/api")
-export default class UserController {  
-  @Get('/users')  
-  @AuthMiddleware(authMiddleware)
-  getUsers(req: Request, res: Response) {  
-	  return res.send('Get all users');  
-  }
+@Middleware(authMiddleware)
+@Delete(":/id")
+deleteUser(@Param("id") id: string, @Res() res) {
+  // ...
 }
- 
- @Post('/users')  
-  getUsers(req: Request, res: Response) {  
-	  const body = request.body;
-	  return res.send(body);  
-  }
-}
- ```
-#####  Sample Middleware function
-Example file `authMiddleware.ts`
-```TypeScript
-import {Request, Response, NextFunction} from "express";
+```
 
-export default authMiddleware(req: Request, res: Response, next: NextFunction) {  
-  const token = req.body.token;  
-  if (token) {  
-	 next();  
-  } else {  
-	 res.send("Unauthorized token!");  
-  }
+---
+
+## Error and Response Interceptors
+
+You can provide your own error and response interceptors for custom handling:
+
+```ts
+// Response Interceptor Example
+import {IResponseInterceptor} from "express-router-controller-khmer";
+import {Request, Response} from "express";
+
+export default class ResponseInterceptor implements IResponseInterceptor {
+    response(data: any, req: Request, res: Response) {
+        res.json({data});
+    }
 }
- ```
+```
+```ts
+// Error Interceptor Example
+import {IErrorInterceptor} from "express-router-controller-khmer";
+import {Request, Response} from "express";
+
+class ErrorInterceptor implements IErrorInterceptor {
+    errorException(error: any, req: Request, res: Response) {
+        res.status(error.code || 500).json({message: error.message || "internal error"});
+    }
+}
+```
+
+```ts
+await AutoRegisterControllers({
+  router,
+  controllerPath: [path.join(__dirname, "controllers/*.js")],
+  responseInterceptor: new myResponseInterceptor(),
+  errorInterceptor: new myErrorInterceptor(),
+});
+```
+
+---
+
+## Best Practices
+
+- Always use `express.json()` and `express.urlencoded()` before registering controllers.
+- Do not mutate shared state in your controllers or handlers.
+- Use TypeScript for best experience and type safety.
+
+---
+
+## License
+
+MIT
+
+---
+
+## Contributing
+
+Pull requests and issues are welcome! Please open an issue to discuss your ideas or report bugs.
+
+---
+
+## Author
+
+Xiao Din 🔥

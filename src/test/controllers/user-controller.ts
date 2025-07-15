@@ -1,21 +1,16 @@
-import {Get, Middleware, Post, Prefix} from "@decorators/ExpressMethod";
-import authMiddleware from "@decorators/AuthMiddleware";
+import {Body, Get, Param, Post, Prefix, Res} from "@decorators/ExpressMethod";
 
 @Prefix("/users")
 export default class A {
     @Post("")
-    post(req, res) {
-        res.status(200).json({})
+    post(@Body() data, @Res() res) {
+        console.log(data);
+        return data;
     }
 
-    @Middleware(authMiddleware)
-    del() {
-
-    }
-
-    @Get("")
-    get(req, res){
-      res.end();
+    @Get("/:id/:name")
+    get(@Param("id") id: string, @Param() params: string, @Res() res: Response) {
+        return params
     }
 
 }

@@ -16,7 +16,9 @@
       "@middleware/*":[ "config/middleware/*"],
       "@exception/*":[ "config/exception/*"],
       "@decorators/*":[ "decorators/*"],
-      "@interfaces/*":[ "interfaces/*"]
+      "@interfaces/*":[ "interfaces/*"],
+      "@util/*":[ "util/*"],
+      "@constant/*":[ "constant/*"]
     }
   },
   "exclude": [

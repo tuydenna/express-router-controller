@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import ResErrorMiddleware from "@middleware/res-error-middleware";
 import {IInterceptors} from "@interfaces/interceptor";
+import {IArgMetadata} from "@interfaces/loader";
+import {ArgMetaKey, ControllerMetaKey} from "@constant/metadakey";
 
 export default abstract class MainLoad {
 
@@ -81,19 +83,33 @@ export default abstract class MainLoad {
             const methods: string[] = Object.getOwnPropertyNames(classInstance.constructor.prototype);
             for (const methodName of methods) {
                 //const router = Reflect.getMetadata('router', controllerInstance.constructor);
-                const prefix: string = Reflect.getMetadata('prefix', classInstance.constructor);
-                const middleware: string = Reflect.getMetadata('middleware', classInstance.constructor, methodName);
-                const method: string = Reflect.getMetadata('method', classInstance, methodName);
-                let path: string = Reflect.getMetadata('path', classInstance, methodName);
+                const prefix: string = Reflect.getMetadata(ControllerMetaKey.prefix, classInstance.constructor);
+                const middleware: string = Reflect.getMetadata(ControllerMetaKey.middleware, classInstance.constructor, methodName);
+                const method: string = Reflect.getMetadata(ControllerMetaKey.method, classInstance, methodName);
+                let path: string = Reflect.getMetadata(ControllerMetaKey.path, classInstance, methodName);
+
+                const args: IArgMetadata[] = [];
+                const functionArgLength : number = classInstance[methodName].length;
+                const argMetadataKey: string[] = ['params', 'query', 'body', 'res', 'req'] as const;
+
+                for (let i: number = 0; i < functionArgLength; i++) {
+                    for (const key of argMetadataKey) {
+                        const arg: IArgMetadata | undefined = Reflect.getMetadata(ArgMetaKey[key] + i, classInstance.constructor, methodName);
+                        if (arg) {
+                            args.push(arg);
+                            break;
+                        }
+                    }
+                }
 
                 path = this.cleanURLPath(prefix) + this.cleanURLPath(path);
 
                 if (!(path && method)) continue;
 
                 if (middleware) {
-                    this.routesWithMiddleware.push({path, method: method.toLowerCase(), middleware, function: classInstance[methodName].bind(classInstance)});
+                    this.routesWithMiddleware.push({path, method: method.toLowerCase(), middleware, function: classInstance[methodName].bind(classInstance)}, args);
                 } else {
-                    this.routesWithoutMiddleware.push({path, method: method.toLowerCase(), function: classInstance[methodName].bind(classInstance)});
+                    this.routesWithoutMiddleware.push({path, method: method.toLowerCase(), function: classInstance[methodName].bind(classInstance), args});
                 }
             }
         } catch (e) {
@@ -111,12 +127,12 @@ export default abstract class MainLoad {
 
     private registerExpressRoutes() {
         for (const route of this.routesWithoutMiddleware ) {
-            this.router[route.method](route.path, this.routeNextResolver(route.function));
+            this.router[route.method](route.path, this.routeNextResolver(route.function, route.args));
         }
 
         for (const route of this.routesWithMiddleware ) {
             // this.router.use(route.path, this.routeNextResolver(route.middleware));
-            this.router[route.method](route.path, route.middleware, this.routeNextResolver(route.function));
+            this.router[route.method](route.path, route.middleware, this.routeNextResolver(route.function, route.args));
         }
 
         // Res and error handler
@@ -137,10 +153,14 @@ export default abstract class MainLoad {
         }
     }
 
-    private routeNextResolver(callBack: Function) {
+    private routeNextResolver(callBack: Function, args: IArgMetadata[]) {
         return function (req: Request, res: Response, next: NextFunction) {
             try {
-                Promise.resolve(callBack(req, res, next)).catch(error => {
+                const mappedArgs = args.map(({type, key}) => {
+                    const source = type === "res" ? res : type === "req" ? req : req[type];
+                    return key ? source[key] : source;
+                })
+                Promise.resolve(callBack(...mappedArgs)).catch(error => {
                     next(error instanceof Error ? error : new Error(error));
                 }).then(data=> {
                     if (res.headersSent == false) next(data)

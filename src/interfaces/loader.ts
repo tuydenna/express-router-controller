@@ -7,6 +7,11 @@ export interface IConfigRouter extends Partial<IInterceptors> {
     logging: boolean,
 }
 
+export interface IArgMetadata  {
+    type: "params" | "query" | "body" | "res" | "req",
+    key: string
+}
+
 export interface IAutoRegister {
     getAllRegisterRoutes(): string[]
 }

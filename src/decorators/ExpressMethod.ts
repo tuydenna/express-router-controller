@@ -1,39 +1,32 @@
 import "reflect-metadata"
+import {ArgMetaKey, ControllerMetaKey} from "@constant/metadakey";
 
 function createMethodDecorator(method: string) {
 	return function (path: string) {
 		return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-			/*const originalMethod = descriptor.value;
-			router[method.toLowerCase()](path, (req: express.Request, res: express.Response) => {
-				originalMethod.call(target, req, res);
-			});*/
-			/*console.log("target", target.constructor);
-			console.log("path", path);
-			console.log("method", method);*/
-			Reflect.defineMetadata('path', path, target, propertyKey);
-			Reflect.defineMetadata('method', method, target, propertyKey);
-			//Reflect.defineMetadata('router', router, target.constructor);
+			Reflect.defineMetadata(ControllerMetaKey.path, path, target, propertyKey);
+			Reflect.defineMetadata(ControllerMetaKey.method, method, target, propertyKey);
 		};
 	};
 }
 
+function createArgumentDecorator(type: string) {
+	return function (key?: string) {
+		return function (target: Object, methodName: string | symbol, paramIndex: number) {
+			Reflect.defineMetadata(ArgMetaKey[type] + paramIndex, {type, index: paramIndex, key}, target.constructor, methodName);
+		};
+	}
+}
+
 function Prefix(prefix: string) {
 	return function (target: any) {
-		/*const originalMethod = descriptor.value;
-		router[method.toLowerCase()](path, (req: express.Request, res: express.Response) => {
-			originalMethod.call(target, req, res);
-		});*/
-		/*console.log("target", target.constructor);
-		console.log("path", path);
-		console.log("method", method);*/
-		Reflect.defineMetadata('prefix', prefix, target);
-		//Reflect.defineMetadata('router', router, target.constructor);
+		Reflect.defineMetadata(ControllerMetaKey.prefix, prefix, target);
 	};
 }
 
 function Middleware(middleware: Function) {
 	return function (target: any, propertyKey: string) {
-		Reflect.defineMetadata('middleware', middleware, target.constructor, propertyKey);
+		Reflect.defineMetadata(ControllerMetaKey.middleware, middleware, target.constructor, propertyKey);
 	};
 }
 
@@ -42,6 +35,12 @@ const Post = createMethodDecorator('POST');
 const Delete = createMethodDecorator('DELETE');
 const Put = createMethodDecorator('PUT');
 
-export {Get, Post, Delete, Put, Prefix, Middleware}
+const Param = createArgumentDecorator('params');
+const Query = createArgumentDecorator('query');
+const Body = createArgumentDecorator('body');
+const Req = createArgumentDecorator('res');
+const Res = createArgumentDecorator('req');
+
+export {Get, Post, Delete, Put, Prefix, Middleware, Param, Query, Body, Res, Req}
 
 // Add other HTTP method decorators as needed (PUT, DELETE, etc.)

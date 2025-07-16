@@ -38,8 +38,8 @@ const Put = createMethodDecorator('PUT');
 const Param = createArgumentDecorator('params');
 const Query = createArgumentDecorator('query');
 const Body = createArgumentDecorator('body');
-const Req = createArgumentDecorator('res');
-const Res = createArgumentDecorator('req');
+const Req = createArgumentDecorator('req');
+const Res = createArgumentDecorator('res');
 
 export {Get, Post, Delete, Put, Prefix, Middleware, Param, Query, Body, Res, Req}
 

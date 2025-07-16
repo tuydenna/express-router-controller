@@ -1,4 +1,4 @@
-import {Body, Get, Param, Post, Prefix, Put, Res} from "@decorators/ExpressMethod";
+import {Body, Get, Param, Post, Prefix, Put, Req, Res} from "@decorators/ExpressMethod";
 
 @Prefix("/users")
 export default class A {
@@ -8,8 +8,8 @@ export default class A {
     }
 
     @Post("")
-    post(@Body() data, @Res() res) {
-        console.log(data);
+    post(@Body() data, @Res() res, @Req() req) {
+        console.log(data, res === req, res.method, req.method);
         return data;
     }
 

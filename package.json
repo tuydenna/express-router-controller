@@ -1,6 +1,6 @@
 {
   "name": "express-router-controller-khmer",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "license": "xaio-din",
   "keywords": [
     "routing-controller",
@@ -12,15 +12,16 @@
     "type": "git",
     "url": "https://github.com/tuydenna/express-router-controller.git"
   },
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "build"
+    "dist"
   ],
   "scripts": {
     "start": "concurrently \"npx tsc --watch\" \"npx nodemon -q ./build/server.js\"",
     "build": "tsc && tsc-alias",
-    "build:pro": "npx tsc --project tsconfig-npm-pubish.json && tsc-alias",
+    "build:pro": "rmdir /s /q dist && npx tsc --project tsconfig-npm-pubish.json && tsc-alias -p tsconfig-npm-pubish.json",
+    "build:local": "rmdir /s /q dist && npx tsc --project tsconfig-npm-pubish.json && tsc-alias -p tsconfig-npm-pubish.json && npm pack",
     "publish": "npm publish",
     "test": "node ./build/test/server.js",
     "watch": "tsc && (concurrently \"npx tsc --watch\" \" tsc-alias -w\" \"npx nodemon -q ./build/test/server.js\")"

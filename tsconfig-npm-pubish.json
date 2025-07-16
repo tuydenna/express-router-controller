@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "target": "es6",
     "moduleResolution": "node",
-    "outDir": "build",
+    "outDir": "dist",
     "baseUrl": "./src",
     "resolveJsonModule": true,
     "sourceMap": false,
@@ -18,7 +18,8 @@
       "@decorators/*":[ "decorators/*"],
       "@interfaces/*":[ "interfaces/*"],
       "@util/*":[ "util/*"],
-      "@constant/*":[ "constant/*"]
+      "@constant/*":[ "constant/*"],
+      "@config/*":[ "config/*"]
     }
   },
   "exclude": [

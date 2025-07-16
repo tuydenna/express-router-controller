@@ -18,7 +18,8 @@
       "@decorators/*":[ "decorators/*"],
       "@interfaces/*":[ "interfaces/*"],
       "@util/*":[ "util/*"],
-      "@constant/*":[ "constant/*"]
+      "@constant/*":[ "constant/*"],
+      "@config/*":[ "config/*"]
     }
   },
   "exclude": [

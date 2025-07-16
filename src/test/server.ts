@@ -1,4 +1,4 @@
-import  express from "express";
+import express, {Router} from "express";
 import {AutoRegisterControllers} from "../index";
 import path from "path";
 
@@ -7,7 +7,7 @@ import path from "path";
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
 
-    const router = express.Router()
+    const router: Router = Router()
 
     await AutoRegisterControllers({
         router,

@@ -1,10 +1,11 @@
-import {NextFunction, Request, Response, Router} from "express";
+import {Router} from "express";
 import fs from "fs";
 import path from "path";
 import ResErrorMiddleware from "@middleware/res-error-middleware";
 import {IInterceptors} from "@interfaces/interceptor";
 import {IArgMetadata} from "@interfaces/loader";
 import {ArgMetaKey, ControllerMetaKey} from "@constant/metadakey";
+import {checkValidClassController, cleanURLPath, routeNextResolver} from "@registry/helper/main-helper";
 
 export default abstract class MainLoad {
 
@@ -23,7 +24,7 @@ export default abstract class MainLoad {
      async register() {
         await this.registerControllers();
         this.registerExpressRoutes();
-    }
+     }
 
     private async registerControllers() {
         try {
@@ -54,7 +55,7 @@ export default abstract class MainLoad {
                             const controller: string = await import(path.join(foldersPath, file));
                             const classTemplate: any = controller[Object.keys(controller)[0]];
 
-                            if (!this.checkValidClassController(classTemplate))  continue;
+                            if (!checkValidClassController(classTemplate))  continue;
                             const controllerInstance = new classTemplate();
                             this.resolveControllerDecorator(controllerInstance);
                         }
@@ -62,7 +63,7 @@ export default abstract class MainLoad {
                         const controller: string = await import(conPath);
                         const classTemplate: any = controller[Object.keys(controller)[0]];
 
-                        if (!this.checkValidClassController(classTemplate))  continue;
+                        if (!checkValidClassController(classTemplate))  continue;
 
                         const controllerInstance = new classTemplate();
                         this.resolveControllerDecorator(controllerInstance);
@@ -70,12 +71,39 @@ export default abstract class MainLoad {
                 }
             }
         } catch (e) {
-            console.log("\x1b[36m","[Routing Controller]:","\x1b[31m","loading controller failed!", e);
+            console.log("\x1b[36m","[express-routing-controller-khmer]:","\x1b[31m","loading controller failed!", e);
         }
     }
 
-    private checkValidClassController(classTemplate: unknown): boolean {
-        return typeof classTemplate === 'function' && /^class\s/.test(Function.prototype.toString.call(classTemplate))
+    private registerExpressRoutes() {
+        try {
+            for (const route of this.routesWithoutMiddleware ) {
+                this.router[route.method](route.path, routeNextResolver(route.function, route.args));
+            }
+
+            for (const route of this.routesWithMiddleware ) {
+                this.router[route.method](route.path, route.middleware, routeNextResolver(route.function, route.args));
+            }
+
+            // Res and error handler
+            this.router.use(ResErrorMiddleware(this.interceptors));
+
+            if (this.logger == false) return;
+
+            const stacks = this.router.stack;
+
+            for (const stack of stacks) {
+
+                if (!stack.route) continue;
+
+                const innerStack: any[] = stack.route?.stack || []
+                this.routes.push(stack.route.path);
+
+                console.log("\x1b[36m","["+Object.keys(stack.route.methods)[0].toUpperCase()+"]","\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:", "\x1b[32m", innerStack.length > 1 ? innerStack[0].name : "N/A");
+            }
+        } catch (e) {
+            console.log("\x1b[36m","[express-routing-controller-khmer]:","\x1b[31m","routs register failed!", e);
+        }
     }
 
     private resolveControllerDecorator(classInstance: ClassDecorator) {
@@ -102,72 +130,19 @@ export default abstract class MainLoad {
                     }
                 }
 
-                path = this.cleanURLPath(prefix) + this.cleanURLPath(path);
+                path = cleanURLPath(prefix) + cleanURLPath(path);
 
                 if (!(path && method)) continue;
 
                 if (middleware) {
-                    this.routesWithMiddleware.push({path, method: method.toLowerCase(), middleware, function: classInstance[methodName].bind(classInstance)}, args);
+                    this.routesWithMiddleware.push({path, method: method.toLowerCase(), middleware, function: classInstance[methodName].bind(classInstance), args});
                 } else {
                     this.routesWithoutMiddleware.push({path, method: method.toLowerCase(), function: classInstance[methodName].bind(classInstance), args});
                 }
             }
         } catch (e) {
-            console.log("\x1b[36m","[Routing Controller]:","\x1b[31m","register routes failed!", e);
+            console.log("\x1b[36m","[express-routing-controller-khmer]:","\x1b[31m","register routes failed!", e);
         }
     }
 
-    private cleanURLPath(path: string | undefined): string {
-        if (path && path.trim()) {
-            const newPath: string = path.trim();
-            return newPath.startsWith("/") ? newPath : "/" + newPath;
-        }
-        return "";
-    }
-
-    private registerExpressRoutes() {
-        for (const route of this.routesWithoutMiddleware ) {
-            this.router[route.method](route.path, this.routeNextResolver(route.function, route.args));
-        }
-
-        for (const route of this.routesWithMiddleware ) {
-            // this.router.use(route.path, this.routeNextResolver(route.middleware));
-            this.router[route.method](route.path, route.middleware, this.routeNextResolver(route.function, route.args));
-        }
-
-        // Res and error handler
-        this.router.use(ResErrorMiddleware(this.interceptors));
-
-        if (this.logger == false) return;
-
-        const stacks = this.router.stack;
-
-        for (const stack of stacks) {
-
-            if (!stack.route) continue;
-
-            const innerStack: any[] = stack.route?.stack || []
-            this.routes.push(stack.route.path);
-
-            console.log("\x1b[36m","["+Object.keys(stack.route.methods)[0].toUpperCase()+"]","\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:", "\x1b[32m", innerStack.length > 1 ? innerStack[0].name : "N/A");
-        }
-    }
-
-    private routeNextResolver(callBack: Function, args: IArgMetadata[]) {
-        return function (req: Request, res: Response, next: NextFunction) {
-            try {
-                const mappedArgs = args.map(({type, key}) => {
-                    const source = type === "res" ? res : type === "req" ? req : req[type];
-                    return key ? source[key] : source;
-                })
-                Promise.resolve(callBack(...mappedArgs)).catch(error => {
-                    next(error instanceof Error ? error : new Error(error));
-                }).then(data=> {
-                    if (res.headersSent == false) next(data)
-                });
-            } catch (e) {
-                return next(new Error(e));
-            }
-        }
-    }
 }

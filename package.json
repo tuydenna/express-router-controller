@@ -26,15 +26,18 @@
     "watch": "tsc && (concurrently \"npx tsc --watch\" \" tsc-alias -w\" \"npx nodemon -q ./build/test/server.js\")"
   },
   "dependencies": {
-    "express": "~4.16.1",
-    "reflect-metadata": "^0.1.13",
-    "typescript": "^5.3.2"
+    "reflect-metadata": "^0.1.13"
+  },
+  "peerDependencies": {
+    "express": "*"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.3",
     "concurrently": "^9.2.0",
+    "express": "^5.1.0",
     "nodemon": "^3.1.10",
-    "tsc-alias": "^1.8.16"
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.8.3"
   }
 }

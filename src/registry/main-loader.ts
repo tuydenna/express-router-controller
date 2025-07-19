@@ -4,7 +4,7 @@ import path from "path";
 import ResErrorMiddleware from "@middleware/res-error-middleware";
 import {IInterceptors} from "@interfaces/interceptor";
 import {IArgMetadata} from "@interfaces/loader";
-import {ArgMetaKey, ControllerMetaKey} from "@constant/metadakey";
+import {ArgMetaKey, ClassMetaKey, ControllerMetaKey} from "@constant/metadakey";
 import {checkValidClassController, cleanURLPath, routeNextResolver} from "@registry/helper/main-helper";
 
 export default abstract class MainLoad {
@@ -124,6 +124,15 @@ export default abstract class MainLoad {
                     for (const key of argMetadataKey) {
                         const arg: IArgMetadata | undefined = Reflect.getMetadata(ArgMetaKey[key] + i, classInstance.constructor, methodName);
                         if (arg) {
+                            if (key == "body") {
+                                const paramTypes: any[] = Reflect.getMetadata("design:paramtypes", classInstance, methodName);
+                                const properties = Reflect.getMetadata(ClassMetaKey.property, paramTypes[i].prototype);
+                                console.log({properties}, paramTypes[i].prototype);
+                                arg.classTran = {
+                                    classType: paramTypes[i],
+                                    properties
+                                }
+                            }
                             args.push(arg);
                             break;
                         }

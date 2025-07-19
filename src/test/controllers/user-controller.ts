@@ -1,4 +1,5 @@
 import {Body, Get, Param, Post, Prefix, Put, Req, Res} from "@decorators/ExpressMethod";
+import UserDto from "@test/dto/user.dto";
 
 @Prefix("/users")
 export default class A {
@@ -8,14 +9,12 @@ export default class A {
     }
 
     @Post("")
-    post(@Body() data, @Res() res, @Req() req) {
-        console.log(data, res === req, res.method, req.method);
+    post(@Body() data: UserDto) {
         return data;
     }
 
     @Put("")
     update(req, res) {
-        console.log(req, res);
         return res;
     }
 

@@ -15,4 +15,8 @@ const ArgMetaKey = {
     req: getMetadataNaming("arg:req_"),
 } as const;
 
-export {ControllerMetaKey, ArgMetaKey}
+const ClassMetaKey = {
+    property: getMetadataNaming("properties"),
+}
+
+export {ControllerMetaKey, ArgMetaKey, ClassMetaKey}

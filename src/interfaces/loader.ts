@@ -10,6 +10,10 @@ export interface IConfigRouter extends Partial<IInterceptors> {
 export interface IArgMetadata  {
     type: "params" | "query" | "body" | "res" | "req",
     key: string
+    classTran?: {
+        classType: any,
+        properties: any[]
+    }
 }
 
 export interface IAutoRegister {

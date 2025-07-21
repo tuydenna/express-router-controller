@@ -1,7 +1,7 @@
-import {IArgMetadata} from "@interfaces/loader";
+import {IArgMetadata, IClassTransformProps} from "@interfaces/loader";
 import {NextFunction, Request, Response} from "express";
 
-function checkValidClassController(classTemplate: unknown): boolean {
+function checkValidClassModule(classTemplate: unknown): boolean {
     return typeof classTemplate === 'function' && /^class\s/.test(Function.prototype.toString.call(classTemplate))
 }
 
@@ -20,9 +20,9 @@ function routeNextResolver(callBack: Function, args: IArgMetadata[]) {
                 const source = type === "res" ? res : type === "req" ? req : req[type];
                 const data =  key ? source[key] : source;
                 if (classTran) {
-                    const rawObj = plainToInstance(classTran.classType, data);
-                    const tranedObj = instanceToTransform(rawObj, classTran.properties);
-                    return tranedObj
+                    const rawObj: Object = plainToInstance(classTran.classModule, data);
+                    const transedObj: Object = instanceToTransform(rawObj, classTran.transProps);
+                    return transedObj;
                 }
                 return data;
             })
@@ -37,9 +37,8 @@ function routeNextResolver(callBack: Function, args: IArgMetadata[]) {
     }
 }
 
-function instanceToTransform(obj: any, properties: any[]): any {
+function instanceToTransform(obj: Object, properties: IClassTransformProps[]): Object {
     for ( const property of properties) {
-        // console.log(property, obj[property.key]);
         obj[property.key] = property.callBack(obj[property.key]);
     }
     return obj;
@@ -55,4 +54,4 @@ function plainToInstance<T>(cls: new () => T, plainObj: object): T {
     return instance;
 }
 
-export {checkValidClassController, cleanURLPath, routeNextResolver}
+export {checkValidClassModule, cleanURLPath, routeNextResolver}

@@ -3,9 +3,9 @@ import fs from "fs";
 import path from "path";
 import ResErrorMiddleware from "@middleware/res-error-middleware";
 import {IInterceptors} from "@interfaces/interceptor";
-import {IArgMetadata} from "@interfaces/loader";
+import {IArgMetadata, IClassTransformProps} from "@interfaces/loader";
 import {ArgMetaKey, ClassMetaKey, ControllerMetaKey} from "@constant/metadakey";
-import {checkValidClassController, cleanURLPath, routeNextResolver} from "@registry/helper/main-helper";
+import {checkValidClassModule, cleanURLPath, routeNextResolver} from "@registry/helper/main-helper";
 
 export default abstract class MainLoad {
 
@@ -55,7 +55,7 @@ export default abstract class MainLoad {
                             const controller: string = await import(path.join(foldersPath, file));
                             const classTemplate: any = controller[Object.keys(controller)[0]];
 
-                            if (!checkValidClassController(classTemplate))  continue;
+                            if (!checkValidClassModule(classTemplate))  continue;
                             const controllerInstance = new classTemplate();
                             this.resolveControllerDecorator(controllerInstance);
                         }
@@ -63,7 +63,7 @@ export default abstract class MainLoad {
                         const controller: string = await import(conPath);
                         const classTemplate: any = controller[Object.keys(controller)[0]];
 
-                        if (!checkValidClassController(classTemplate))  continue;
+                        if (!checkValidClassModule(classTemplate))  continue;
 
                         const controllerInstance = new classTemplate();
                         this.resolveControllerDecorator(controllerInstance);
@@ -118,19 +118,20 @@ export default abstract class MainLoad {
 
                 const args: IArgMetadata[] = [];
                 const functionArgLength : number = classInstance[methodName].length;
-                const argMetadataKey: string[] = ['params', 'query', 'body', 'res', 'req'] as const;
+                const argsMetadataKey: string[] = ['params', 'query', 'body', 'res', 'req'] as const;
 
                 for (let i: number = 0; i < functionArgLength; i++) {
-                    for (const key of argMetadataKey) {
-                        const arg: IArgMetadata | undefined = Reflect.getMetadata(ArgMetaKey[key] + i, classInstance.constructor, methodName);
+                    for (const argMetadataKey of argsMetadataKey) {
+                        // Resolve Params Decorators
+                        const arg: IArgMetadata | undefined = Reflect.getMetadata(ArgMetaKey[argMetadataKey] + i, classInstance.constructor, methodName);
                         if (arg) {
-                            if (key == "body") {
-                                const paramTypes: any[] = Reflect.getMetadata("design:paramtypes", classInstance, methodName);
-                                const properties = Reflect.getMetadata(ClassMetaKey.property, paramTypes[i].prototype);
-                                console.log({properties}, paramTypes[i].prototype);
+                            // Resolve Class Props transform
+                            const paramTypes: any[] = Reflect.getMetadata("design:paramtypes", classInstance, methodName);
+                            if (checkValidClassModule(paramTypes[i]) && ['params', 'query', 'body', 'res', 'req'].includes(argMetadataKey)) {
+                                const transProps: IClassTransformProps[] = Reflect.getMetadata(ClassMetaKey.property, paramTypes[i].prototype);
                                 arg.classTran = {
-                                    classType: paramTypes[i],
-                                    properties
+                                    classModule: paramTypes[i],
+                                    transProps
                                 }
                             }
                             args.push(arg);

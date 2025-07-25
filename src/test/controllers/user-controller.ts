@@ -1,5 +1,8 @@
-import {Body, Get, Param, Post, Prefix, Put, Req, Res} from "@decorators/ExpressMethod";
+import {Body, Get, Param, Post, Prefix, Put, Res} from "@decorators/express-method";
 import UserDto from "@test/dto/user.dto";
+import fs from "fs";
+import path from "path";
+import * as process from "node:process";
 
 @Prefix("/users")
 export default class A {
@@ -10,13 +13,16 @@ export default class A {
 
     @Post("")
     post(@Body() data: UserDto) {
-        return data;
+        console.log(data);
+        const buffer: Buffer = fs.readFileSync(path.join(process.cwd(), "text.txt"));
+        return buffer.toString();
     }
 
     @Put("")
     update(req, res) {
         return res;
     }
+
 
 }
 

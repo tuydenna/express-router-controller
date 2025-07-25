@@ -1,13 +1,5 @@
 import "reflect-metadata"
-import {ArgMetaKey, ClassMetaKey, ControllerMetaKey} from "@constant/metadakey";
-
-function Transform(callBack: Function) {
-	return function (target: any, propertyKey: string) {
-		const existingKeys = Reflect.getMetadata(ClassMetaKey.property, target) || [];
-		console.log(existingKeys, target);
-		Reflect.defineMetadata(ClassMetaKey.property, [...existingKeys, {key: propertyKey, callBack}], target);
-	};
-}
+import {ArgMetaKey, ControllerMetaKey} from "@constant/metadakey";
 
 function createMethodDecorator(method: string) {
 	return function (path: string) {
@@ -49,6 +41,6 @@ const Body = createArgumentDecorator('body');
 const Req = createArgumentDecorator('req');
 const Res = createArgumentDecorator('res');
 
-export {Get, Post, Delete, Put, Prefix, Middleware, Param, Query, Body, Res, Req, Transform}
+export {Get, Post, Delete, Put, Prefix, Middleware, Param, Query, Body, Res, Req}
 
 // Add other HTTP method decorators as needed (PUT, DELETE, etc.)

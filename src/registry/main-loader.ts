@@ -16,8 +16,9 @@ export default abstract class MainLoad {
     protected constructor(
         private router: Router,
         private controllerPath: string[],
-        private logger: boolean = false,
-        private interceptors: IInterceptors
+        private logger: boolean,
+        private interceptors: IInterceptors,
+        private classTransform: boolean
     ) {
     }
 
@@ -126,12 +127,14 @@ export default abstract class MainLoad {
                         const arg: IArgMetadata | undefined = Reflect.getMetadata(ArgMetaKey[argMetadataKey] + i, classInstance.constructor, methodName);
                         if (arg) {
                             // Resolve Class Props transform
-                            const paramTypes: any[] = Reflect.getMetadata("design:paramtypes", classInstance, methodName);
-                            if (checkValidClassModule(paramTypes[i]) && ['params', 'query', 'body', 'res', 'req'].includes(argMetadataKey)) {
-                                const transProps: IClassTransformProps[] = Reflect.getMetadata(ClassMetaKey.property, paramTypes[i].prototype);
-                                arg.classTran = {
-                                    classModule: paramTypes[i],
-                                    transProps
+                            if (this.classTransform) {
+                                const paramTypes: any[] = Reflect.getMetadata("design:paramtypes", classInstance, methodName);
+                                if (checkValidClassModule(paramTypes[i]) && ['params', 'query', 'body', 'res', 'req'].includes(argMetadataKey)) {
+                                    const transProps: IClassTransformProps[] = Reflect.getMetadata(ClassMetaKey.property, paramTypes[i].prototype);
+                                    arg.classTran = {
+                                        classModule: paramTypes[i],
+                                        transProps
+                                    }
                                 }
                             }
                             args.push(arg);

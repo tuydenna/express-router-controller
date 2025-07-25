@@ -6,8 +6,8 @@ import {IInterceptors} from "@interfaces/interceptor";
 
 export default class AutoRegisterController extends MainLoad implements IAutoRegister {
 
-    constructor(router: Router, controllerPath: string[], logger: boolean = false, interceptors: IInterceptors) {
-        super(router, controllerPath, logger, interceptors);
+    constructor(router: Router, controllerPath: string[], logger: boolean = false, interceptors: IInterceptors, classTransform: boolean = false) {
+        super(router, controllerPath, logger, interceptors, classTransform);
     }
 
     getAllRegisterRoutes(): string[] {

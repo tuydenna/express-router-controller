@@ -1,5 +1,6 @@
-import {IArgMetadata, IClassTransformProps} from "@interfaces/loader";
+import {IArgMetadata} from "@interfaces/loader";
 import {NextFunction, Request, Response} from "express";
+import ClassTransform from "@registry/class-transform";
 
 function checkValidClassModule(classTemplate: unknown): boolean {
     return typeof classTemplate === 'function' && /^class\s/.test(Function.prototype.toString.call(classTemplate))
@@ -19,10 +20,9 @@ function routeNextResolver(callBack: Function, args: IArgMetadata[]) {
             const mappedArgs = args.map(({type, key, classTran}) => {
                 const source = type === "res" ? res : type === "req" ? req : req[type];
                 const data =  key ? source[key] : source;
+                // Class Transform Logic
                 if (classTran) {
-                    const rawObj: Object = plainToInstance(classTran.classModule, data);
-                    const transedObj: Object = instanceToTransform(rawObj, classTran.transProps);
-                    return transedObj;
+                    return ClassTransform.toClassInstance(data, classTran);
                 }
                 return data;
             })
@@ -35,23 +35,6 @@ function routeNextResolver(callBack: Function, args: IArgMetadata[]) {
             return next(new Error(e));
         }
     }
-}
-
-function instanceToTransform(obj: Object, properties: IClassTransformProps[]): Object {
-    for ( const property of properties) {
-        obj[property.key] = property.callBack(obj[property.key]);
-    }
-    return obj;
-}
-
-function plainToInstance<T>(cls: new () => T, plainObj: object): T {
-    const instance = new cls();
-    for (const key in plainObj) {
-        if (Object.prototype.hasOwnProperty.call(plainObj, key)) {
-            (instance as any)[key] = (plainObj as any)[key];
-        }
-    }
-    return instance;
 }
 
 export {checkValidClassModule, cleanURLPath, routeNextResolver}

@@ -1,13 +1,9 @@
-import {Transform} from "@decorators/ExpressMethod";
+import {ToNumber, Transform} from "@decorators/class-tranfrom";
 
 export default class UserDto {
-    @Transform(toNum)
+    @Transform(ToNumber)
     searchKey: string;
 
-    @Transform(toNum)
+    @Transform(ToNumber)
     take: number = 5;
-}
-
-function toNum(val) {
-    return +val
 }

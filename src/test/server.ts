@@ -1,11 +1,13 @@
 import express, {Router} from "express";
 import {AutoRegisterControllers} from "../index";
 import path from "path";
+import compression from "compression";
 
 (async function Server()  {
     const app = express()
     app.use(express.json())
-    app.use(express.urlencoded({ extended: true }))
+    app.use(express.urlencoded({ extended: false }))
+    app.use(compression())
 
     const router: Router = Router()
 
@@ -13,6 +15,7 @@ import path from "path";
         router,
         logging: true,
         controllerPath: [path.join(__dirname, "controllers/*.js")],
+        classTransform: true
     })
 
     app.use(router)

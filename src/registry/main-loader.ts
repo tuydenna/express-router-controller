@@ -54,6 +54,9 @@ export default abstract class MainLoad {
                             if (!file.endsWith('.' + ext)) continue;
 
                             const controller: string = await import(path.join(foldersPath, file));
+
+                            // if(!(Array.isArray(Object.keys(controller)) && Object.keys(controller).length)) continue;
+
                             const classTemplate: any = controller[Object.keys(controller)[0]];
 
                             if (!checkValidClassModule(classTemplate))  continue;
@@ -62,6 +65,9 @@ export default abstract class MainLoad {
                         }
                     } else {
                         const controller: string = await import(conPath);
+
+                        // if(!(Array.isArray(Object.keys(controller)) && Object.keys(controller).length)) continue;
+
                         const classTemplate: any = controller[Object.keys(controller)[0]];
 
                         if (!checkValidClassModule(classTemplate))  continue;
@@ -103,7 +109,7 @@ export default abstract class MainLoad {
                 console.log("\x1b[36m","["+Object.keys(stack.route.methods)[0].toUpperCase()+"]","\x1b[32m", stack.route.path, "\x1b[36m", "[MIDDLEWARE]:", "\x1b[32m", innerStack.length > 1 ? innerStack[0].name : "N/A");
             }
         } catch (e) {
-            console.log("\x1b[36m","[express-routing-controller-khmer]:","\x1b[31m","routs register failed!", e);
+            console.log("\x1b[36m","[express-routing-controller-khmer]:","\x1b[31m","routes register failed!", e);
         }
     }
 
@@ -128,8 +134,8 @@ export default abstract class MainLoad {
                         if (arg) {
                             // Resolve Class Props transform
                             if (this.classTransform) {
-                                const paramTypes: any[] = Reflect.getMetadata("design:paramtypes", classInstance, methodName);
-                                if (checkValidClassModule(paramTypes[i]) && ['params', 'query', 'body', 'res', 'req'].includes(argMetadataKey)) {
+                                const paramTypes: any[] | undefined = Reflect.getMetadata("design:paramtypes", classInstance, methodName);
+                                if (paramTypes && checkValidClassModule(paramTypes[i]) && ['params', 'query', 'body', 'res', 'req'].includes(argMetadataKey)) {
                                     const transProps: IClassTransformProps[] = Reflect.getMetadata(ClassMetaKey.property, paramTypes[i].prototype);
                                     arg.classTran = {
                                         classModule: paramTypes[i],
@@ -154,7 +160,7 @@ export default abstract class MainLoad {
                 }
             }
         } catch (e) {
-            console.log("\x1b[36m","[express-routing-controller-khmer]:","\x1b[31m","register routes failed!", e);
+            console.log("\x1b[36m","[express-routing-controller-khmer]:","\x1b[31m","decorator resolver failed!", e, "try in tsconfig.json set emitDecoratorMetadata = true");
         }
     }
 

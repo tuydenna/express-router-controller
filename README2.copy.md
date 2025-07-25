@@ -11,7 +11,6 @@ A lightweight, TypeScript-first decorator-based controller library for Express.j
 - **Prefix and middleware support** at the controller and method level
 - **TypeScript support** out of the box
 - **Pluggable error and response interceptors**
-- **Automatic class transformation and property decorators** — Seamlessly transform and validate request data into class instances using decorators like `@Transform` (with callbacks such as `ToNumber`) for type conversion and custom logic.
 
 ---
 
@@ -42,7 +41,6 @@ await AutoRegisterControllers({
   router,
   controllerPath: [path.join(__dirname, "controllers/*.js")],
   logging: true,
-  classTransform: true, // Enable class transformation feature
 });
 
 app.use(router);
@@ -53,42 +51,26 @@ app.listen(5000, () => {
 
 ---
 
-### 2. Create a Controller and Use Class Transform
+### 2. Create a Controller
 
-You can define DTO (Data Transfer Object) classes with property decorators to automatically transform and validate incoming request data. This is especially useful for type conversion and input sanitization.
-
-#### Example DTO with Property Decorators
 ```ts
-import { Transform, ToNumber } from "express-router-controller-khmer";
-
-export default class UserDto {
-  @Transform(ToNumber)
-  age: number;
-
-  @Transform(value => value.trim())
-  name: string;
-}
-```
-
-#### Example Controller Using DTO
-```ts
-import { Prefix, Post, Body } from "express-router-controller-khmer";
-import UserDto from "./dto/user.dto";
+import { Prefix, Get, Post, Body, Param, Res } from "express-router-controller-khmer";
 
 @Prefix("/users")
 export default class UserController {
   @Post("")
-  createUser(@Body() data: UserDto) {
-    // data.age is a number, data.name is trimmed
-    return data;
+  createUser(@Body() data, @Res() res) {
+    // handle user creation
+    return data
+  }
+
+  @Get("/:id")
+  getUser(@Param("id") id: string, @Res() res) {
+    // handle get user
+    return {id}
   }
 }
 ```
-
-**How it works:**
-- When `classTransform: true` is enabled, the library will automatically instantiate your DTO classes and apply all property transformations defined by `@Transform` and built-in decorators.
-- This ensures that incoming data is properly typed and formatted before it reaches your business logic.
-- You can create your own custom property decorators using the `@Transform` utility.
 
 ---
 
@@ -105,8 +87,6 @@ export default class UserController {
 - `@Req()` — Inject the raw Express request object.
 - `@Res()` — Inject the raw Express response object.
 - `@Middleware(fn)` — Attach middleware to a route.
-- `@Transform(fn)` — Transform a property value when using class transformation.
-- `ToNumber` — A callback function for `@Transform` that converts a value to a number (usage: `@Transform(ToNumber)`).
 
 ---
 
@@ -154,6 +134,15 @@ class ErrorInterceptor implements IErrorInterceptor {
 }
 ```
 
+```ts
+await AutoRegisterControllers({
+  router,
+  controllerPath: [path.join(__dirname, "controllers/*.js")],
+  responseInterceptor: new myResponseInterceptor(),
+  errorInterceptor: new myErrorInterceptor(),
+});
+```
+
 ---
 
 ## Best Practices
@@ -161,7 +150,6 @@ class ErrorInterceptor implements IErrorInterceptor {
 - Always use `express.json()` and `express.urlencoded()` before registering controllers.
 - Do not mutate shared state in your controllers or handlers.
 - Use TypeScript for best experience and type safety.
-- Use class transformation and property decorators to ensure your input data is clean and correctly typed. Use transformation callbacks like `ToNumber` with `@Transform` for type conversion.
 
 ---
 
